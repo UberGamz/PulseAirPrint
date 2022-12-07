@@ -1,0 +1,10 @@
+﻿APPLICATION "_pulseairprint_"
+FUNC_DLL "chooks\PulseAirPrint.dll"
+RES_DLL "SAME"
+dnRES_NAME "_PulseAirPrint.PulseAirPrint"
+CATEGORY "Automation"
+FUNCTION NET "PulseAirPrintRun"
+dnSPNG "Run16"
+dnLPNG"Run32"
+dnTIP "RunTip"
+END_FUNCTION
