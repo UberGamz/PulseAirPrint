@@ -19,17 +19,110 @@ namespace _PulseAirPrint
     {
         public Mastercam.App.Types.MCamReturn PulseAirPrintRun(Mastercam.App.Types.MCamReturn notused)
         {
-            var PD = 0.0;
-            var drillSize = 0.0;
-            var points = SearchManager.GetGeometry(11);
-            foreach (var point in points) {
-                if (point is PointGeometry pointy){
-                    MCView Top = new MCView();
-                    Mastercam.Math.Point3D origin = new Mastercam.Math.Point3D(0.0, 0.0, 0.0);
-                    Mastercam.Math.Point3D pt1 = new Mastercam.Math.Point3D(pointy.Data.x, 0.0, 0.0);
-                    point.Translate(pt1, origin, Top, Top);
+
+            ////////// Params
+            var PD = 4.058;
+            var drillSize = 0.3125;
+            var origin = new Point3D(0, 0, 0);
+
+
+            ////////// Creates level 300 points, moves to Z0 and X0 from TOP, deletes duplicates
+            var points11 = SearchManager.GetGeometry(11);
+            foreach (var point in points11)
+            {
+                if (point is PointGeometry currentPoint)
+                {
+                    var newPoint = new PointGeometry();
+                    newPoint.Data.x = 0;
+                    newPoint.Data.y = currentPoint.Data.y;
+                    newPoint.Data.z = 0;
+                    newPoint.Level = 300;
+                    newPoint.Selected = false;
+                    newPoint.Commit();
+                    point.Selected = false;
+                    point.Commit();
                 }
             }
+            SelectionManager.UnselectAllGeometry();
+            LevelsManager.RefreshLevelsManager();
+            LevelsManager.SetMainLevel(300);
+            var shown = LevelsManager.GetVisibleLevelNumbers();
+            foreach (var level in shown)
+            {
+                LevelsManager.SetLevelVisible(level, false);
+            }
+            LevelsManager.SetLevelVisible(300, true);
+            LevelsManager.RefreshLevelsManager();
+            GraphicsManager.Repaint(true);
+
+            ////////// Rolls Geo
+            ViewManager.GraphicsView = SearchManager.GetSystemView(SystemPlaneType.Right);
+            ViewManager.WorkCoordinateSystem = SearchManager.GetSystemView(SystemPlaneType.Right);
+            ViewManager.TPlane = SearchManager.GetSystemView(SystemPlaneType.Right);
+            ViewManager.CPlane = SearchManager.GetSystemView(SystemPlaneType.Right);
+            ViewManager.RefreshPlanesManager();
+            GraphicsManager.Repaint(true);
+            GraphicsManager.FitScreen();
+            GeometryInteractionManager.DeleteDuplicates(true);
+            GraphicsManager.Repaint(true);
+
+            var points300 = SearchManager.GetGeometry(300);
+            foreach (var point in points300)
+            {
+                if (point is PointGeometry pointy) {
+                    var pointLocation = new Point3D(pointy.Data.y, 0, 0);
+                    var distance = VectorManager.Distance(pointLocation, origin);
+                    var percent = distance / (PD * Math.PI);
+                    pointy.Data.y = 0;
+                    pointy.Data.z = PD / 2;
+                    pointy.Selected = true;
+                    pointy.Commit();
+                    pointy.Retrieve();
+                    var newPointLocation = new Point3D(pointy.Data.x, pointy.Data.y, pointy.Data.z);
+                    var newLine = new LineGeometry(newPointLocation, origin);
+                    newLine.Selected = true; 
+                    newLine.Commit();
+                    GeometryManipulationManager.RotateGeometry(origin, (percent * 360), SearchManager.GetSystemView(SystemPlaneType.Right), false);
+                    pointy.Retrieve();
+                    pointy.Selected = false;
+                    pointy.Commit();
+                    newLine.Retrieve();
+                    newLine.Selected = false;
+                    newLine.Commit();
+                    var drillPoint = pointy.ScaleAndCopy(origin, (PD - 1.2) / PD);
+                    drillPoint.Commit();
+                    drillPoint.Retrieve();
+                    if(drillPoint is PointGeometry thisDrillPoint)
+                    {
+                        var drillPointLocation = new Point3D(thisDrillPoint.Data.y, thisDrillPoint.Data.z, thisDrillPoint.Data.x);
+                        var drilledHole = new ArcGeometry();
+                        drilledHole.Data.CenterPoint = drillPointLocation;
+                        drilledHole.Data.Radius = (drillSize / 2);
+                        drilledHole.Retrieve();
+                        drilledHole.Commit();
+                    }
+                }
+            }
+            GraphicsManager.ClearColors(new GroupSelectionMask(true));
+            GraphicsManager.FitScreen();
+            GraphicsManager.Repaint(true);
+            
+            var pdCircle = new ArcGeometry();
+            pdCircle.Data.CenterPoint = origin;
+            pdCircle.Data.Radius = (PD/ 2);
+            var paCircle = new ArcGeometry();
+            paCircle.Data.CenterPoint = origin;
+            paCircle.Data.Radius = ((PD-1.2) / 2);
+            pdCircle.Commit();
+            paCircle.Commit();
+            GraphicsManager.Repaint(true);
+            
+
+
+
+
+
+
             return MCamReturn.NoErrors;
         }
     }
