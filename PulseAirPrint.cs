@@ -12,6 +12,9 @@ using Mastercam.Curves;
 using Mastercam.BasicGeometry;
 using Mastercam.Database.Interop;
 using Mastercam.IO.Types;
+using PulseAirPrint;
+using System.Windows.Forms;
+
 
 namespace _PulseAirPrint
 {
@@ -20,9 +23,41 @@ namespace _PulseAirPrint
         public Mastercam.App.Types.MCamReturn PulseAirPrintRun(Mastercam.App.Types.MCamReturn notused)
         {
 
+            ///paSide
+            ///drillSizeBox
+            ///thruBox
+            ///rotaryPDBox
+            ///nGearToInsideDim
+            ///nGearToOutsideDim
+            ///insideDim
+            ///gearToInsideDim
+            ///gearToOutsideDim
+
+            var form = new PulseAirPrintForm();
+            form.ShowDialog();
+
+            var paSide = form.paSide.Text; // Gearside / Tailstock
+            var drillSizeBox = double.Parse(form.drillSizeBox.Text);
+            var thruBox = form.thruBox.Text; // No / Yes
+            var rotaryPDBox = double.Parse(form.rotaryPDBox.Text);
+            var nGearToInsideDim = double.Parse(form.nGearToInsideDim.Text);
+            var nGearToOutsideDim = double.Parse(form.nGearToOutsideDim.Text);
+            var insideDim = double.Parse(form.insideDim.Text);
+            var gearToInsideDim = double.Parse(form.gearToInsideDim.Text);
+            var gearToOutsideDim = double.Parse(form.gearToOutsideDim.Text);
+
+            
+
+
+
+
+
+
+
+
             ////////// Params
-            var PD = 4.058;
-            var drillSize = 0.3125;
+            var PD = rotaryPDBox;
+            var drillSize = drillSizeBox;
             var origin = new Point3D(0, 0, 0);
 
 
