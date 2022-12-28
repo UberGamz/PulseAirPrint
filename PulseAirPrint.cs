@@ -116,9 +116,55 @@ namespace _PulseAirPrint
             pdCircle.Commit();
             paCircle.Commit();
             GraphicsManager.Repaint(true);
-            
 
 
+            ViewManager.GraphicsView = SearchManager.GetSystemView(SystemPlaneType.Front);
+            ViewManager.WorkCoordinateSystem = SearchManager.GetSystemView(SystemPlaneType.Front);
+            ViewManager.TPlane = SearchManager.GetSystemView(SystemPlaneType.Front);
+            ViewManager.CPlane = SearchManager.GetSystemView(SystemPlaneType.Front);
+            ViewManager.RefreshPlanesManager();
+            GraphicsManager.Repaint(true);
+            GraphicsManager.FitScreen();
+
+            var geo300 = SearchManager.GetGeometry(300);
+            foreach (var entity in geo300)
+            {
+                entity.Selected = true;
+                entity.Commit();
+                var geo301 = entity.CopyAndRotate(origin, -90, SearchManager.GetSystemView(SystemPlaneType.Front));
+                entity.Selected = false;
+                entity.Commit();
+                geo301.Retrieve();
+                geo301.Rotate(origin, 90, SearchManager.GetSystemView(SystemPlaneType.Top));
+                geo301.Retrieve();
+                var translatePoint = new Point3D(30,0,0);
+                geo301.Translate(origin, translatePoint, SearchManager.GetSystemView(SystemPlaneType.Top), SearchManager.GetSystemView(SystemPlaneType.Top));
+                geo301.Retrieve();
+                geo301.Level = 301;
+                geo301.Color = 15;
+                geo301.Commit();
+
+            }
+            GraphicsManager.ClearColors(new GroupSelectionMask(true));
+            GraphicsManager.Repaint(true);
+            ViewManager.GraphicsView = SearchManager.GetSystemView(SystemPlaneType.Top);
+            ViewManager.WorkCoordinateSystem = SearchManager.GetSystemView(SystemPlaneType.Top);
+            ViewManager.TPlane = SearchManager.GetSystemView(SystemPlaneType.Top);
+            ViewManager.CPlane = SearchManager.GetSystemView(SystemPlaneType.Top);
+            ViewManager.RefreshPlanesManager();
+            LevelsManager.SetLevelVisible(301, true);
+            LevelsManager.SetMainLevel(301);
+            LevelsManager.SetLevelVisible(300, false);
+            LevelsManager.RefreshLevelsManager();
+            GraphicsManager.Repaint(true);
+            GraphicsManager.FitScreen();
+
+            var geoLevel301 = SearchManager.GetGeometry(301);
+            foreach (var entity in geoLevel301)
+            {
+                if (entity is ArcGeometry) { }
+                else { entity.Delete(); };
+            }
 
 
 
