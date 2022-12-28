@@ -46,7 +46,6 @@ namespace _PulseAirPrint
             var gearToInsideDim = double.Parse(form.gearToInsideDim.Text);
             var gearToOutsideDim = double.Parse(form.gearToOutsideDim.Text);
 
-            
 
 
 
@@ -54,155 +53,171 @@ namespace _PulseAirPrint
 
 
 
+            void StepOne(){
 
-            ////////// Params
-            var PD = rotaryPDBox;
-            var drillSize = drillSizeBox;
-            var origin = new Point3D(0, 0, 0);
+                ////////// Params
+                var PD = rotaryPDBox;
+                var drillSize = drillSizeBox;
+                var origin = new Point3D(0, 0, 0);
 
 
-            ////////// Creates level 300 points, moves to Z0 and X0 from TOP, deletes duplicates
-            var points11 = SearchManager.GetGeometry(11);
-            foreach (var point in points11)
-            {
-                if (point is PointGeometry currentPoint)
+                ////////// Creates level 300 points, moves to Z0 and X0 from TOP, deletes duplicates
+                var points11 = SearchManager.GetGeometry(11);
+                foreach (var point in points11)
                 {
-                    var newPoint = new PointGeometry();
-                    newPoint.Data.x = 0;
-                    newPoint.Data.y = currentPoint.Data.y;
-                    newPoint.Data.z = 0;
-                    newPoint.Level = 300;
-                    newPoint.Selected = false;
-                    newPoint.Commit();
-                    point.Selected = false;
-                    point.Commit();
-                }
-            }
-            SelectionManager.UnselectAllGeometry();
-            LevelsManager.RefreshLevelsManager();
-            LevelsManager.SetMainLevel(300);
-            var shown = LevelsManager.GetVisibleLevelNumbers();
-            foreach (var level in shown)
-            {
-                LevelsManager.SetLevelVisible(level, false);
-            }
-            LevelsManager.SetLevelVisible(300, true);
-            LevelsManager.RefreshLevelsManager();
-            GraphicsManager.Repaint(true);
-
-            ////////// Rolls Geo
-            ViewManager.GraphicsView = SearchManager.GetSystemView(SystemPlaneType.Right);
-            ViewManager.WorkCoordinateSystem = SearchManager.GetSystemView(SystemPlaneType.Right);
-            ViewManager.TPlane = SearchManager.GetSystemView(SystemPlaneType.Right);
-            ViewManager.CPlane = SearchManager.GetSystemView(SystemPlaneType.Right);
-            ViewManager.RefreshPlanesManager();
-            GraphicsManager.Repaint(true);
-            GraphicsManager.FitScreen();
-            GeometryInteractionManager.DeleteDuplicates(true);
-            GraphicsManager.Repaint(true);
-
-            var points300 = SearchManager.GetGeometry(300);
-            foreach (var point in points300)
-            {
-                if (point is PointGeometry pointy) {
-                    var pointLocation = new Point3D(pointy.Data.y, 0, 0);
-                    var distance = VectorManager.Distance(pointLocation, origin);
-                    var percent = distance / (PD * Math.PI);
-                    pointy.Data.y = 0;
-                    pointy.Data.z = PD / 2;
-                    pointy.Selected = true;
-                    pointy.Commit();
-                    pointy.Retrieve();
-                    var newPointLocation = new Point3D(pointy.Data.x, pointy.Data.y, pointy.Data.z);
-                    var newLine = new LineGeometry(newPointLocation, origin);
-                    newLine.Selected = true; 
-                    newLine.Commit();
-                    GeometryManipulationManager.RotateGeometry(origin, (percent * 360), SearchManager.GetSystemView(SystemPlaneType.Right), false);
-                    pointy.Retrieve();
-                    pointy.Selected = false;
-                    pointy.Commit();
-                    newLine.Retrieve();
-                    newLine.Selected = false;
-                    newLine.Commit();
-                    var drillPoint = pointy.ScaleAndCopy(origin, (PD - 1.2) / PD);
-                    drillPoint.Commit();
-                    drillPoint.Retrieve();
-                    if(drillPoint is PointGeometry thisDrillPoint)
+                    if (point is PointGeometry currentPoint)
                     {
-                        var drillPointLocation = new Point3D(thisDrillPoint.Data.y, thisDrillPoint.Data.z, thisDrillPoint.Data.x);
-                        var drilledHole = new ArcGeometry();
-                        drilledHole.Data.CenterPoint = drillPointLocation;
-                        drilledHole.Data.Radius = (drillSize / 2);
-                        drilledHole.Retrieve();
-                        drilledHole.Commit();
+                        var newPoint = new PointGeometry();
+                        newPoint.Data.x = 0;
+                        newPoint.Data.y = currentPoint.Data.y;
+                        newPoint.Data.z = 0;
+                        newPoint.Level = 300;
+                        newPoint.Selected = false;
+                        newPoint.Commit();
+                        point.Selected = false;
+                        point.Commit();
                     }
                 }
+                SelectionManager.UnselectAllGeometry();
+                LevelsManager.RefreshLevelsManager();
+                LevelsManager.SetMainLevel(300);
+                var shown = LevelsManager.GetVisibleLevelNumbers();
+                foreach (var level in shown)
+                {
+                    LevelsManager.SetLevelVisible(level, false);
+                }
+                LevelsManager.SetLevelVisible(300, true);
+                LevelsManager.RefreshLevelsManager();
+                GraphicsManager.Repaint(true);
+
+                ////////// Rolls Geo
+                ViewManager.GraphicsView = SearchManager.GetSystemView(SystemPlaneType.Right);
+                ViewManager.WorkCoordinateSystem = SearchManager.GetSystemView(SystemPlaneType.Right);
+                ViewManager.TPlane = SearchManager.GetSystemView(SystemPlaneType.Right);
+                ViewManager.CPlane = SearchManager.GetSystemView(SystemPlaneType.Right);
+                ViewManager.RefreshPlanesManager();
+                GraphicsManager.Repaint(true);
+                GraphicsManager.FitScreen();
+                GeometryInteractionManager.DeleteDuplicates(true);
+                GraphicsManager.Repaint(true);
+
+                var points300 = SearchManager.GetGeometry(300);
+                foreach (var point in points300)
+                {
+                    if (point is PointGeometry pointy) {
+                        var pointLocation = new Point3D(pointy.Data.y, 0, 0);
+                        var distance = VectorManager.Distance(pointLocation, origin);
+                        var percent = distance / (PD * Math.PI);
+                        pointy.Data.y = 0;
+                        pointy.Data.z = PD / 2;
+                        pointy.Selected = true;
+                        pointy.Commit();
+                        pointy.Retrieve();
+                        var newPointLocation = new Point3D(pointy.Data.x, pointy.Data.y, pointy.Data.z);
+                        var newLine = new LineGeometry(newPointLocation, origin);
+                        newLine.Selected = true;
+                        newLine.Commit();
+                        GeometryManipulationManager.RotateGeometry(origin, (percent * 360), SearchManager.GetSystemView(SystemPlaneType.Right), false);
+                        pointy.Retrieve();
+                        pointy.Selected = false;
+                        pointy.Commit();
+                        newLine.Retrieve();
+                        newLine.Selected = false;
+                        newLine.Commit();
+                        var drillPoint = pointy.ScaleAndCopy(origin, (PD - 1.2) / PD);
+                        drillPoint.Commit();
+                        drillPoint.Retrieve();
+                        if (drillPoint is PointGeometry thisDrillPoint)
+                        {
+                            var drillPointLocation = new Point3D(thisDrillPoint.Data.y, thisDrillPoint.Data.z, thisDrillPoint.Data.x);
+                            var drilledHole = new ArcGeometry();
+                            drilledHole.Data.CenterPoint = drillPointLocation;
+                            drilledHole.Data.Radius = (drillSize / 2);
+                            drilledHole.Retrieve();
+                            drilledHole.Commit();
+                        }
+                    }
+                }
+                GraphicsManager.ClearColors(new GroupSelectionMask(true));
+                GraphicsManager.FitScreen();
+                GraphicsManager.Repaint(true);
+
+                var pdCircle = new ArcGeometry();
+                pdCircle.Data.CenterPoint = origin;
+                pdCircle.Data.Radius = (PD / 2);
+                var paCircle = new ArcGeometry();
+                paCircle.Data.CenterPoint = origin;
+                paCircle.Data.Radius = ((PD - 1.2) / 2);
+                pdCircle.Commit();
+                paCircle.Commit();
+                GraphicsManager.Repaint(true);
+
+
+                ViewManager.GraphicsView = SearchManager.GetSystemView(SystemPlaneType.Front);
+                ViewManager.WorkCoordinateSystem = SearchManager.GetSystemView(SystemPlaneType.Front);
+                ViewManager.TPlane = SearchManager.GetSystemView(SystemPlaneType.Front);
+                ViewManager.CPlane = SearchManager.GetSystemView(SystemPlaneType.Front);
+                ViewManager.RefreshPlanesManager();
+                GraphicsManager.Repaint(true);
+                GraphicsManager.FitScreen();
+
+                var geo300 = SearchManager.GetGeometry(300);
+                foreach (var entity in geo300)
+                {
+                    entity.Selected = true;
+                    entity.Commit();
+                    var geo301 = entity.CopyAndRotate(origin, -90, SearchManager.GetSystemView(SystemPlaneType.Front));
+                    entity.Selected = false;
+                    entity.Commit();
+                    geo301.Retrieve();
+                    geo301.Rotate(origin, 90, SearchManager.GetSystemView(SystemPlaneType.Top));
+                    geo301.Retrieve();
+                    var translatePoint = new Point3D(30, 0, 0);
+                    geo301.Translate(origin, translatePoint, SearchManager.GetSystemView(SystemPlaneType.Top), SearchManager.GetSystemView(SystemPlaneType.Top));
+                    geo301.Retrieve();
+                    geo301.Level = 301;
+                    geo301.Color = 15;
+                    geo301.Commit();
+
+                }
+                GraphicsManager.ClearColors(new GroupSelectionMask(true));
+                GraphicsManager.Repaint(true);
+                ViewManager.GraphicsView = SearchManager.GetSystemView(SystemPlaneType.Top);
+                ViewManager.WorkCoordinateSystem = SearchManager.GetSystemView(SystemPlaneType.Top);
+                ViewManager.TPlane = SearchManager.GetSystemView(SystemPlaneType.Top);
+                ViewManager.CPlane = SearchManager.GetSystemView(SystemPlaneType.Top);
+                ViewManager.RefreshPlanesManager();
+                LevelsManager.SetLevelVisible(301, true);
+                LevelsManager.SetMainLevel(301);
+                LevelsManager.SetLevelVisible(300, false);
+                LevelsManager.RefreshLevelsManager();
+                GraphicsManager.Repaint(true);
+                GraphicsManager.FitScreen();
+
+                var geoLevel301 = SearchManager.GetGeometry(301);
+                foreach (var entity in geoLevel301)
+                {
+                    if (entity is ArcGeometry) { }
+                    else { entity.Delete(); };
+                }
             }
-            GraphicsManager.ClearColors(new GroupSelectionMask(true));
-            GraphicsManager.FitScreen();
-            GraphicsManager.Repaint(true);
-            
-            var pdCircle = new ArcGeometry();
-            pdCircle.Data.CenterPoint = origin;
-            pdCircle.Data.Radius = (PD/ 2);
-            var paCircle = new ArcGeometry();
-            paCircle.Data.CenterPoint = origin;
-            paCircle.Data.Radius = ((PD-1.2) / 2);
-            pdCircle.Commit();
-            paCircle.Commit();
-            GraphicsManager.Repaint(true);
-
-
-            ViewManager.GraphicsView = SearchManager.GetSystemView(SystemPlaneType.Front);
-            ViewManager.WorkCoordinateSystem = SearchManager.GetSystemView(SystemPlaneType.Front);
-            ViewManager.TPlane = SearchManager.GetSystemView(SystemPlaneType.Front);
-            ViewManager.CPlane = SearchManager.GetSystemView(SystemPlaneType.Front);
-            ViewManager.RefreshPlanesManager();
-            GraphicsManager.Repaint(true);
-            GraphicsManager.FitScreen();
-
-            var geo300 = SearchManager.GetGeometry(300);
-            foreach (var entity in geo300)
-            {
-                entity.Selected = true;
-                entity.Commit();
-                var geo301 = entity.CopyAndRotate(origin, -90, SearchManager.GetSystemView(SystemPlaneType.Front));
-                entity.Selected = false;
-                entity.Commit();
-                geo301.Retrieve();
-                geo301.Rotate(origin, 90, SearchManager.GetSystemView(SystemPlaneType.Top));
-                geo301.Retrieve();
-                var translatePoint = new Point3D(30,0,0);
-                geo301.Translate(origin, translatePoint, SearchManager.GetSystemView(SystemPlaneType.Top), SearchManager.GetSystemView(SystemPlaneType.Top));
-                geo301.Retrieve();
-                geo301.Level = 301;
-                geo301.Color = 15;
-                geo301.Commit();
-
-            }
-            GraphicsManager.ClearColors(new GroupSelectionMask(true));
-            GraphicsManager.Repaint(true);
-            ViewManager.GraphicsView = SearchManager.GetSystemView(SystemPlaneType.Top);
-            ViewManager.WorkCoordinateSystem = SearchManager.GetSystemView(SystemPlaneType.Top);
-            ViewManager.TPlane = SearchManager.GetSystemView(SystemPlaneType.Top);
-            ViewManager.CPlane = SearchManager.GetSystemView(SystemPlaneType.Top);
-            ViewManager.RefreshPlanesManager();
-            LevelsManager.SetLevelVisible(301, true);
-            LevelsManager.SetMainLevel(301);
-            LevelsManager.SetLevelVisible(300, false);
-            LevelsManager.RefreshLevelsManager();
-            GraphicsManager.Repaint(true);
-            GraphicsManager.FitScreen();
-
-            var geoLevel301 = SearchManager.GetGeometry(301);
-            foreach (var entity in geoLevel301)
-            {
-                if (entity is ArcGeometry) { }
-                else { entity.Delete(); };
+            void StepTwo() {
+                var textPoint = new Point3D(30, (-rotaryPDBox / 2), 0);
+                var TextDataFormat = new LetterCreationData{ 
+                    LetterText = "GearSide",
+                    StartingPoint = textPoint,
+                    FontHeight = 0.16,
+                    FontSpacing = 0.08,
+                    FontAlignment = FontAlignmentType.Horizontal,
+                    FontMode = FontModeType.MastercamBoxFont
+                };
+                Mastercam.GeometryUtility.LetterCreationManager.CreateLetters(TextDataFormat);
+                
             }
 
 
-
+            StepOne();
+            StepTwo();
 
             return MCamReturn.NoErrors;
         }
