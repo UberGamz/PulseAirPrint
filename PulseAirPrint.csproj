@@ -8,10 +8,11 @@
     <OutputType>Library</OutputType>
     <RootNamespace>PulseAirPrint</RootNamespace>
     <AssemblyName>PulseAirPrint</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -66,6 +67,9 @@
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="NETHook3_0">
       <HintPath>..\..\..\..\..\Program Files\Mastercam 2022\Mastercam\NETHook3_0.dll</HintPath>
+    </Reference>
+    <Reference Include="SurfaceTPDepthsInterop">
+      <HintPath>..\..\..\..\..\Program Files\Mastercam 2022\Mastercam\SurfaceTPDepthsInterop.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />

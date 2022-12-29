@@ -45,9 +45,19 @@ namespace _PulseAirPrint
             var insideDim = double.Parse(form.insideDim.Text);
             var gearToInsideDim = double.Parse(form.gearToInsideDim.Text);
             var gearToOutsideDim = double.Parse(form.gearToOutsideDim.Text);
-
-
-
+            var repeatHeight = rotaryPDBox * Math.PI;
+            var textPoint1 = new Point3D(28.75, (-rotaryPDBox), 0);
+            var textPoint2 = new Point3D(27.25, (-rotaryPDBox)-.2, 0);
+            var textPoint3 = new Point3D(28.25, (-rotaryPDBox)-.4, 0);
+            var GearSideEndX = (insideDim / 2) + gearToInsideDim;
+            var nGearSideEndX = (insideDim / 2) + nGearToInsideDim;
+            var nGearToInsidePointX = nGearSideEndX - nGearToInsideDim;
+            var nGearToOutsidePointX = nGearSideEndX - nGearToOutsideDim;
+            var GearToInsidePointX = GearSideEndX - gearToInsideDim;
+            var GearToOutsidePointX = GearSideEndX - gearToOutsideDim;
+            var originPointList = new List<PointGeometry>();
+            var origin = new Point3D(0, 0, 0);
+            var totalLength = gearToInsideDim + insideDim + nGearToInsideDim;
 
 
 
@@ -58,7 +68,6 @@ namespace _PulseAirPrint
                 ////////// Params
                 var PD = rotaryPDBox;
                 var drillSize = drillSizeBox;
-                var origin = new Point3D(0, 0, 0);
 
 
                 ////////// Creates level 300 points, moves to Z0 and X0 from TOP, deletes duplicates
@@ -67,6 +76,7 @@ namespace _PulseAirPrint
                 {
                     if (point is PointGeometry currentPoint)
                     {
+                        originPointList.Add(currentPoint);
                         var newPoint = new PointGeometry();
                         newPoint.Data.x = 0;
                         newPoint.Data.y = currentPoint.Data.y;
@@ -201,169 +211,275 @@ namespace _PulseAirPrint
                     else { entity.Delete(); };
                 }
             }
-            void StepTwo() {
-                var textPoint = new Point3D(30, (-rotaryPDBox / 2), 0);
-                var TextDataFormat = new LetterCreationData{ 
-                    LetterText = "GearSide",
-                    StartingPoint = textPoint,
+            void GearSide() {
+                var TextDataFormat = new LetterCreationData
+                {
+                    LetterText = "GearSide View",
+                    StartingPoint = textPoint1,
                     FontHeight = 0.16,
                     FontSpacing = 0.08,
                     FontAlignment = FontAlignmentType.Horizontal,
                     FontMode = FontModeType.MastercamBoxFont
                 };
+                var nGearToInsidePoint = new Point3D(-nGearToInsidePointX, 0, 0);
+                var nGearToOutsidePoint = new Point3D(-nGearToOutsidePointX, 0, 0);
+                var GearToInsidePoint = new Point3D(GearToInsidePointX, 0, 0);
+                var GearToOutsidePoint = new Point3D(GearToOutsidePointX, 0, 0);
+                var GearSideEnd = new Point3D(GearSideEndX, 0, 0);
+                var nGearSideEnd = new Point3D(-nGearSideEndX, 0, 0);
+                var tempPoint1 = new Point3D(nGearToInsidePoint.x, repeatHeight, 0);
+                var tempPoint2 = new Point3D(nGearToOutsidePoint.x, repeatHeight, 0);
+                var tempPoint3 = new Point3D(GearToInsidePoint.x, repeatHeight, 0);
+                var tempPoint4 = new Point3D(GearToOutsidePoint.x, repeatHeight, 0);
+                var tempPoint5 = new Point3D(GearSideEnd.x, repeatHeight, 0);
+                var tempPoint6 = new Point3D(nGearSideEnd.x, repeatHeight, 0);
+                var nGearToInsideLine = new LineGeometry(nGearToInsidePoint, tempPoint1);
+                var nGearToOutsideLine = new LineGeometry(nGearToOutsidePoint, tempPoint2);
+                var GearToInsideLine = new LineGeometry(GearToInsidePoint, tempPoint3);
+                var GearToOutsideLine = new LineGeometry(GearToOutsidePoint, tempPoint4);
+                var gearEndLine = new LineGeometry(GearSideEnd, tempPoint5);
+                var nGearEndLine = new LineGeometry(nGearSideEnd, tempPoint6);
+                nGearToInsideLine.Commit();
+                nGearToOutsideLine.Commit();
+                GearToInsideLine.Commit();
+                GearToOutsideLine.Commit();
+                gearEndLine.Commit();
+                nGearEndLine.Commit();
                 Mastercam.GeometryUtility.LetterCreationManager.CreateLetters(TextDataFormat);
-                
+                var tempList = new List<double>();
+                foreach (var point in originPointList)
+                {
+                    tempList.Add(point.Data.x);
+                }
+                tempList.Sort();
+                var leftest = tempList[0];
+                var leftestPoint = new Point3D(leftest, 0, 0);
+                var bearerToHole = Math.Round(VectorManager.Distance(leftestPoint, nGearToOutsidePoint) + .25, 4);
+                var endToHole = Math.Round(VectorManager.Distance(leftestPoint, nGearSideEnd)+.25,4);
+                if (thruBox == "No")
+                {
+                    var bearerTextDataFormat = new LetterCreationData
+                    {
+                        LetterText = bearerToHole.ToString() + "From Outside Bearer/Spacer",
+                        StartingPoint = textPoint2,
+                        FontHeight = 0.16,
+                        FontSpacing = 0.08,
+                        FontAlignment = FontAlignmentType.Horizontal,
+                        FontMode = FontModeType.MastercamBoxFont
+                    };
+                    Mastercam.GeometryUtility.LetterCreationManager.CreateLetters(bearerTextDataFormat);
+                }
+                if (thruBox == "Yes")
+                {
+                    var bearerTextDataFormat = new LetterCreationData
+                    {
+                        LetterText = bearerToHole.ToString() + "From Outside Bearer/Spacer & THRU",
+                        StartingPoint = textPoint2,
+                        FontHeight = 0.16,
+                        FontSpacing = 0.08,
+                        FontAlignment = FontAlignmentType.Horizontal,
+                        FontMode = FontModeType.MastercamBoxFont
+                    };
+                    Mastercam.GeometryUtility.LetterCreationManager.CreateLetters(bearerTextDataFormat);
+                }
+
+                var endTextDataFormat = new LetterCreationData
+                {
+                    LetterText = endToHole.ToString() + "From Outside Edge",
+                    StartingPoint = textPoint3,
+                    FontHeight = 0.16,
+                    FontSpacing = 0.08,
+                    FontAlignment = FontAlignmentType.Horizontal,
+                    FontMode = FontModeType.MastercamBoxFont
+                };
+                Mastercam.GeometryUtility.LetterCreationManager.CreateLetters(endTextDataFormat);
+            }
+            void nGearSide()
+            {
+                var TextDataFormat = new LetterCreationData
+                {
+                    LetterText = "Tailstock View",
+                    StartingPoint = textPoint1,
+                    FontHeight = 0.16,
+                    FontSpacing = 0.08,
+                    FontAlignment = FontAlignmentType.Horizontal,
+                    FontMode = FontModeType.MastercamBoxFont
+                };
+                var nGearToInsidePoint = new Point3D(nGearToInsidePointX, 0, 0);
+                var nGearToOutsidePoint = new Point3D(nGearToOutsidePointX, 0, 0);
+                var GearToInsidePoint = new Point3D(-GearToInsidePointX, 0, 0);
+                var GearToOutsidePoint = new Point3D(-GearToOutsidePointX, 0, 0);
+                var GearSideEnd = new Point3D(-GearSideEndX, 0, 0);
+                var nGearSideEnd = new Point3D(nGearSideEndX, 0, 0);
+                var tempPoint1 = new Point3D(nGearToInsidePoint.x, repeatHeight, 0);
+                var tempPoint2 = new Point3D(nGearToOutsidePoint.x, repeatHeight, 0);
+                var tempPoint3 = new Point3D(GearToInsidePoint.x, repeatHeight, 0);
+                var tempPoint4 = new Point3D(GearToOutsidePoint.x, repeatHeight, 0);
+                var tempPoint5 = new Point3D(GearSideEnd.x, repeatHeight, 0);
+                var tempPoint6 = new Point3D(nGearSideEnd.x, repeatHeight, 0);
+                var nGearToInsideLine = new LineGeometry(nGearToInsidePoint, tempPoint1);
+                var nGearToOutsideLine = new LineGeometry(nGearToOutsidePoint, tempPoint2);
+                var GearToInsideLine = new LineGeometry(GearToInsidePoint, tempPoint3);
+                var GearToOutsideLine = new LineGeometry(GearToOutsidePoint, tempPoint4);
+                var gearEndLine = new LineGeometry(GearSideEnd, tempPoint5);
+                var nGearEndLine = new LineGeometry(nGearSideEnd, tempPoint6);
+                nGearToInsideLine.Commit();
+                nGearToOutsideLine.Commit();
+                GearToInsideLine.Commit();
+                GearToOutsideLine.Commit();
+                gearEndLine.Commit();
+                nGearEndLine.Commit();
+                Mastercam.GeometryUtility.LetterCreationManager.CreateLetters(TextDataFormat);
+                var tempList = new List<double>();
+                foreach (var point in originPointList)
+                {
+                    tempList.Add(point.Data.x);
+                }
+                tempList.Sort();
+                var leftest = tempList[0];
+                var leftestPoint = new Point3D(leftest, 0, 0);
+                var bearerToHole = Math.Round(VectorManager.Distance(leftestPoint, nGearToOutsidePoint) + .25, 4);
+                var endToHole = Math.Round(VectorManager.Distance(leftestPoint, nGearSideEnd) + .25, 4);
+                if (thruBox == "No")
+                {
+                    var bearerTextDataFormat = new LetterCreationData
+                    {
+                        LetterText = bearerToHole.ToString() + "From Outside Bearer/Spacer",
+                        StartingPoint = textPoint2,
+                        FontHeight = 0.16,
+                        FontSpacing = 0.08,
+                        FontAlignment = FontAlignmentType.Horizontal,
+                        FontMode = FontModeType.MastercamBoxFont
+                    };
+                    Mastercam.GeometryUtility.LetterCreationManager.CreateLetters(bearerTextDataFormat);
+                }
+                if (thruBox == "Yes")
+                {
+                    var bearerTextDataFormat = new LetterCreationData
+                    {
+                        LetterText = bearerToHole.ToString() + "From Outside Bearer/Spacer & THRU",
+                        StartingPoint = textPoint2,
+                        FontHeight = 0.16,
+                        FontSpacing = 0.08,
+                        FontAlignment = FontAlignmentType.Horizontal,
+                        FontMode = FontModeType.MastercamBoxFont
+                    };
+                    Mastercam.GeometryUtility.LetterCreationManager.CreateLetters(bearerTextDataFormat);
+                }
+
+                var endTextDataFormat = new LetterCreationData
+                {
+                    LetterText = endToHole.ToString() + "From Outside Edge",
+                    StartingPoint = textPoint3,
+                    FontHeight = 0.16,
+                    FontSpacing = 0.08,
+                    FontAlignment = FontAlignmentType.Horizontal,
+                    FontMode = FontModeType.MastercamBoxFont
+                };
+                Mastercam.GeometryUtility.LetterCreationManager.CreateLetters(endTextDataFormat);
+
+                /////////
+                var level300Geo = SearchManager.GetGeometry(300);
+                foreach (var entity in level300Geo)
+                {
+                var newGeo = entity.CopyAndTranslate(origin, nGearSideEnd, new MCView(), new MCView());
+                newGeo.Level = 302;
+                    newGeo.Commit();
+                }
+                var level302Geo = SearchManager.GetGeometry(302);
+                foreach (var entity in level302Geo)
+                {
+                    if (entity is ArcGeometry) { }
+                    else { entity.Delete(); }
+                }
+                GraphicsManager.ClearColors(new GroupSelectionMask(true));
+                GraphicsManager.Repaint(true);
+
+                //////////
+                SelectionManager.UnselectAllGeometry();
+                LevelsManager.RefreshLevelsManager();
+                LevelsManager.SetMainLevel(302);
+                var shown = LevelsManager.GetVisibleLevelNumbers();
+                foreach (var level in shown)
+                {
+                    LevelsManager.SetLevelVisible(level, false);
+                }
+                LevelsManager.SetLevelVisible(302, true);
+                LevelsManager.RefreshLevelsManager();
+                GraphicsManager.Repaint(true);
+
+                ////////// Rolls Geo
+                ViewManager.GraphicsView = SearchManager.GetSystemView(SystemPlaneType.Right);
+                ViewManager.WorkCoordinateSystem = SearchManager.GetSystemView(SystemPlaneType.Right);
+                ViewManager.TPlane = SearchManager.GetSystemView(SystemPlaneType.Right);
+                ViewManager.CPlane = SearchManager.GetSystemView(SystemPlaneType.Right);
+                ViewManager.RefreshPlanesManager();
+                GraphicsManager.Repaint(true);
+                GraphicsManager.FitScreen();
+                var geo302 = SearchManager.GetGeometry(302);
+                foreach (var entity in geo302)
+                {
+                    if (entity is ArcGeometry arc) {
+                        if ((rotaryPDBox / 2) - arc.Data.Radius <= 0.001) {
+                            entity.Selected = true;
+                            entity.Commit();
+                        }
+                        else 
+                        {
+                            entity.Selected = false;
+                            entity.Commit();
+                        }
+                    }  
+                }
+                var selectedGeo1 = ChainManager.ChainAllSelected();
+                foreach (var chain in selectedGeo1)
+                {
+                    var passed = Mastercam.IO.Interop.SelectionManager.DoSolidExtrude(chain, "solid".ToString(), 0, totalLength);
+                    DialogManager.OK(passed.ToString(), "");
+                }
+                SelectionManager.UnselectAllGeometry();
+                foreach (var entity in geo302)
+                {
+                    if (entity is ArcGeometry arc)
+                    {
+                        DialogManager.OK((drillSizeBox / 2).ToString(), "Drill Size Rad");
+                        DialogManager.OK(arc.Data.Radius.ToString(), "arc rad");
+                        DialogManager.OK(((drillSizeBox / 2) - arc.Data.Radius).ToString(), "sum");
+
+                        if ( arc.Data.Radius - (drillSizeBox / 2) <= 0.001)
+                        {
+                            entity.Selected = true;
+                            entity.Commit();
+                        }
+                        else
+                        {
+                            entity.Selected = false;
+                            entity.Commit();
+                        }
+                    }
+                }
+                var selectedGeo2 = ChainManager.ChainAllSelected();
+                foreach (var chain in selectedGeo2)
+                {
+                    Mastercam.IO.Interop.SelectionManager.DoSolidExtrude(chain, "solid".ToString(),1, endToHole);
+                }
+                SelectionManager.UnselectAllGeometry();
+                GraphicsManager.Repaint(true);
+
             }
 
 
             StepOne();
-            StepTwo();
+            if (paSide == "Gearide")
+            {
+                GearSide();
+            }
+            if (paSide == "Tailstock")
+            {
+                nGearSide();
+            }
 
             return MCamReturn.NoErrors;
         }
     }
 }
-
-        
-    
-
-
-            
-
-                
-
-
-
-            
-
-        
-
-
-    
-
-
-/*
-
-void offsetCutchain();
-{
-
-    var selectedChain = ChainManager.ChainAll();
-    int createdUpperLevel = 500;
-    int createdLowerLevel = 501;
-    LevelsManager.SetLevelName(500, "Upper Created Geo");
-    LevelsManager.SetLevelName(501, "Lower Created Geo");
-
-    foreach (var chain in selectedChain)
-    {
-
-
-        var lowerChainLarge = chain.OffsetChain2D(OffsetSideType.Left, .0225, OffsetRollCornerType.None, .5, false, .005, false);
-        var lowerLargeGeometry = ChainManager.GetGeometryInChain(lowerChainLarge);
-
-        var lowerChainSmall = chain.OffsetChain2D(OffsetSideType.Right, .0025, OffsetRollCornerType.None, .5, false, .005, false);
-        var lowerSmallGeometry = ChainManager.GetGeometryInChain(lowerChainSmall);
-
-        var resultGeometry = SearchManager.GetResultGeometry();
-        foreach (var entity in resultGeometry)
-        {
-            entity.Color = 11;
-            entity.Selected = true;
-            entity.Commit();
-        }
-        GeometryManipulationManager.MoveSelectedGeometryToLevel(createdLowerLevel, true);
-        GraphicsManager.ClearColors(new GroupSelectionMask(true));
-
-        var upperChainLarge = chain.OffsetChain2D(OffsetSideType.Left, .0025, OffsetRollCornerType.None, .5, false, .005, false);
-        var upperLargeGeometry = ChainManager.GetGeometryInChain(upperChainLarge);
-
-        var upperChainSmall = chain.OffsetChain2D(OffsetSideType.Right, .0385, OffsetRollCornerType.None, .5, false, .005, false);
-        var upperSmallGeometry = ChainManager.GetGeometryInChain(upperChainSmall);
-
-        var resultGeometryNew = SearchManager.GetResultGeometry();
-        foreach (var entity in resultGeometryNew)
-        {
-            entity.Color = 10;
-            entity.Selected = true;
-            entity.Commit();
-        }
-        GeometryManipulationManager.MoveSelectedGeometryToLevel(createdUpperLevel, true);
-        GraphicsManager.ClearColors(new GroupSelectionMask(true));
-
-    }
-
-
-}
-
-
-
-
-
-// Working Offset Chain
-/*
-
-var selectedChain = ChainManager.GetOneChain("Select a Chain");
-
-var offsetChain = selectedChain.OffsetChain2D(OffsetSideType.Left,
-                                              .245,
-                                              OffsetRollCornerType.None,
-                                              .5,
-                                              false,
-                                              .005,
-                                              false);
-
-var offsetGeometry = ChainManager.GetGeometryInChain(offsetChain);
-
-foreach (var entity in offsetGeometry)
-{
-    entity.Commit();
-}
-
-return MCamReturn.NoErrors;
-*/
-
-
-
-
-
-//Working Translate
-/*
-bool MoveLine() {
-    bool result = false;
-    //Mastercam.IO.SelectionManager.SelectAllGeometry();
-    Mastercam.Math.Point3D pt1 = new Mastercam.Math.Point3D(0.0, 0.0, 0.0);
-    Mastercam.Math.Point3D pt2 = new Mastercam.Math.Point3D(100.0, 0.0, 0.0);
-    MCView Top = new MCView();
-    Mastercam.GeometryUtility.GeometryManipulationManager.TranslateGeometry(pt1, pt2, Top , Top, false);
-    return result;
-}
-MoveLine();
-*/
-
-
-// working form
-/*
-var m = new Form1();
-m.Show();
-*/
-
-// working line creation
-/*
-bool CreateLine()
-{
-    bool result = false;
-
-    Mastercam.Math.Point3D pt1 = new Mastercam.Math.Point3D(0.0, 0.0, 0.0);
-    Mastercam.Math.Point3D pt2 = new Mastercam.Math.Point3D(100.0, 0.0, 0.0);
-    Mastercam.Curves.LineGeometry Line1 = new Mastercam.Curves.LineGeometry(pt1, pt2);
-    result = Line1.Commit();
-    result = Line1.Validate(); // Not really needed here, if Commit was successful - we're good!
-                               //Mastercam.IO.GraphicsManager.Repaint(True)
-
-    return result;
-}
-CreateLine();
-*/
-
-//working popup message
-//  System.Windows.Forms.MessageBox.Show("Jeremy can make pop up messages!");
-//return Mastercam.App.Types.MCamReturn.NoErrors;

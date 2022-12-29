@@ -115,7 +115,7 @@
             this.rotaryPDBox.Name = "rotaryPDBox";
             this.rotaryPDBox.Size = new System.Drawing.Size(100, 20);
             this.rotaryPDBox.TabIndex = 6;
-            this.rotaryPDBox.Text = "3.14";
+            this.rotaryPDBox.Text = "4.058";
             // 
             // label4
             // 
@@ -142,7 +142,7 @@
             this.nGearToInsideDim.Name = "nGearToInsideDim";
             this.nGearToInsideDim.Size = new System.Drawing.Size(30, 20);
             this.nGearToInsideDim.TabIndex = 9;
-            this.nGearToInsideDim.Text = "1";
+            this.nGearToInsideDim.Text = "3.57";
             // 
             // nGearToOutsideDim
             // 
@@ -150,7 +150,7 @@
             this.nGearToOutsideDim.Name = "nGearToOutsideDim";
             this.nGearToOutsideDim.Size = new System.Drawing.Size(30, 20);
             this.nGearToOutsideDim.TabIndex = 10;
-            this.nGearToOutsideDim.Text = "1";
+            this.nGearToOutsideDim.Text = "2.69";
             // 
             // insideDim
             // 
@@ -158,7 +158,7 @@
             this.insideDim.Name = "insideDim";
             this.insideDim.Size = new System.Drawing.Size(30, 20);
             this.insideDim.TabIndex = 11;
-            this.insideDim.Text = "1";
+            this.insideDim.Text = "5.87";
             // 
             // gearToInsideDim
             // 
@@ -166,7 +166,7 @@
             this.gearToInsideDim.Name = "gearToInsideDim";
             this.gearToInsideDim.Size = new System.Drawing.Size(30, 20);
             this.gearToInsideDim.TabIndex = 12;
-            this.gearToInsideDim.Text = "1";
+            this.gearToInsideDim.Text = "2.82";
             // 
             // gearToOutsideDim
             // 
@@ -174,7 +174,7 @@
             this.gearToOutsideDim.Name = "gearToOutsideDim";
             this.gearToOutsideDim.Size = new System.Drawing.Size(30, 20);
             this.gearToOutsideDim.TabIndex = 13;
-            this.gearToOutsideDim.Text = "1";
+            this.gearToOutsideDim.Text = "1.94";
             // 
             // okBTN
             // 
