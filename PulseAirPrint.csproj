@@ -68,6 +68,10 @@
     <Reference Include="NETHook3_0">
       <HintPath>..\..\..\..\..\Program Files\Mastercam 2022\Mastercam\NETHook3_0.dll</HintPath>
     </Reference>
+    <Reference Include="SolidExtrudeInterop, Version=0.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Program Files\Mastercam 2022\Mastercam\SolidExtrudeInterop.dll</HintPath>
+    </Reference>
     <Reference Include="SurfaceTPDepthsInterop">
       <HintPath>..\..\..\..\..\Program Files\Mastercam 2022\Mastercam\SurfaceTPDepthsInterop.dll</HintPath>
     </Reference>

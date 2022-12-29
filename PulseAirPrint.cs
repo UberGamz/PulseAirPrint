@@ -211,10 +211,11 @@ namespace _PulseAirPrint
                     else { entity.Delete(); };
                 }
             }
-            void GearSide() {
+            void GearSide()
+            {
                 var TextDataFormat = new LetterCreationData
                 {
-                    LetterText = "GearSide View",
+                    LetterText = "Tailstock View",
                     StartingPoint = textPoint1,
                     FontHeight = 0.16,
                     FontSpacing = 0.08,
@@ -254,8 +255,10 @@ namespace _PulseAirPrint
                 tempList.Sort();
                 var leftest = tempList[0];
                 var leftestPoint = new Point3D(leftest, 0, 0);
-                var bearerToHole = Math.Round(VectorManager.Distance(leftestPoint, nGearToOutsidePoint) + .25, 4);
-                var endToHole = Math.Round(VectorManager.Distance(leftestPoint, nGearSideEnd)+.25,4);
+                var bearerToHole = Math.Round(VectorManager.Distance(leftestPoint, GearToOutsidePoint) + .25, 4);
+                var endToHole = Math.Round(VectorManager.Distance(leftestPoint, GearSideEnd) + .25, 4);
+                var endToThru = (totalLength - nGearToOutsideDim) + .25;
+                var bearerToThru = (totalLength - (gearToOutsideDim + nGearToOutsideDim)) + .25;
                 if (thruBox == "No")
                 {
                     var bearerTextDataFormat = new LetterCreationData
@@ -268,12 +271,22 @@ namespace _PulseAirPrint
                         FontMode = FontModeType.MastercamBoxFont
                     };
                     Mastercam.GeometryUtility.LetterCreationManager.CreateLetters(bearerTextDataFormat);
+                    var endTextDataFormat = new LetterCreationData
+                    {
+                        LetterText = endToHole.ToString() + "From Outside Edge",
+                        StartingPoint = textPoint3,
+                        FontHeight = 0.16,
+                        FontSpacing = 0.08,
+                        FontAlignment = FontAlignmentType.Horizontal,
+                        FontMode = FontModeType.MastercamBoxFont
+                    };
+                    Mastercam.GeometryUtility.LetterCreationManager.CreateLetters(endTextDataFormat);
                 }
                 if (thruBox == "Yes")
                 {
                     var bearerTextDataFormat = new LetterCreationData
                     {
-                        LetterText = bearerToHole.ToString() + "From Outside Bearer/Spacer & THRU",
+                        LetterText = bearerToThru.ToString() + "From Outside Bearer/Spacer & THRU",
                         StartingPoint = textPoint2,
                         FontHeight = 0.16,
                         FontSpacing = 0.08,
@@ -281,18 +294,112 @@ namespace _PulseAirPrint
                         FontMode = FontModeType.MastercamBoxFont
                     };
                     Mastercam.GeometryUtility.LetterCreationManager.CreateLetters(bearerTextDataFormat);
+                    var endTextDataFormat = new LetterCreationData
+                    {
+                        LetterText = endToThru.ToString() + "From Outside Edge",
+                        StartingPoint = textPoint3,
+                        FontHeight = 0.16,
+                        FontSpacing = 0.08,
+                        FontAlignment = FontAlignmentType.Horizontal,
+                        FontMode = FontModeType.MastercamBoxFont
+                    };
+                    Mastercam.GeometryUtility.LetterCreationManager.CreateLetters(endTextDataFormat);
                 }
 
-                var endTextDataFormat = new LetterCreationData
+
+
+                /////////
+                var level300Geo = SearchManager.GetGeometry(300);
+                foreach (var entity in level300Geo)
                 {
-                    LetterText = endToHole.ToString() + "From Outside Edge",
-                    StartingPoint = textPoint3,
-                    FontHeight = 0.16,
-                    FontSpacing = 0.08,
-                    FontAlignment = FontAlignmentType.Horizontal,
-                    FontMode = FontModeType.MastercamBoxFont
-                };
-                Mastercam.GeometryUtility.LetterCreationManager.CreateLetters(endTextDataFormat);
+                    var newGeo = entity.CopyAndTranslate(origin, GearSideEnd, new MCView(), new MCView());
+                    newGeo.Level = 302;
+                    newGeo.Commit();
+                }
+                var level302Geo = SearchManager.GetGeometry(302);
+                foreach (var entity in level302Geo)
+                {
+                    if (entity is ArcGeometry) { }
+                    else { entity.Delete(); }
+                }
+                GraphicsManager.ClearColors(new GroupSelectionMask(true));
+                GraphicsManager.Repaint(true);
+
+                //////////
+                SelectionManager.UnselectAllGeometry();
+                LevelsManager.RefreshLevelsManager();
+                LevelsManager.SetMainLevel(302);
+                var shown = LevelsManager.GetVisibleLevelNumbers();
+                foreach (var level in shown)
+                {
+                    LevelsManager.SetLevelVisible(level, false);
+                }
+                LevelsManager.SetLevelVisible(302, true);
+                LevelsManager.RefreshLevelsManager();
+                GraphicsManager.Repaint(true);
+
+                //////////
+                ViewManager.GraphicsView = SearchManager.GetSystemView(SystemPlaneType.Right);
+                ViewManager.WorkCoordinateSystem = SearchManager.GetSystemView(SystemPlaneType.Right);
+                ViewManager.TPlane = SearchManager.GetSystemView(SystemPlaneType.Right);
+                ViewManager.CPlane = SearchManager.GetSystemView(SystemPlaneType.Right);
+                ViewManager.RefreshPlanesManager();
+                GraphicsManager.Repaint(true);
+                GraphicsManager.FitScreen();
+                var geo302 = SearchManager.GetGeometry(302);
+                foreach (var entity in geo302)
+                {
+                    if (entity is ArcGeometry arc)
+                    {
+                        if ((rotaryPDBox / 2) - arc.Data.Radius <= 0.001)
+                        {
+                            entity.Selected = true;
+                            entity.Commit();
+                        }
+                        else
+                        {
+                            entity.Selected = false;
+                            entity.Commit();
+                        }
+                    }
+                }
+                var selectedGeo1 = ChainManager.ChainAllSelected();
+                foreach (var chain in selectedGeo1)
+                {
+                    Mastercam.IO.Interop.SelectionManager.DoSolidExtrudeCreate(chain, totalLength);
+                }
+                SelectionManager.UnselectAllGeometry();
+                foreach (var entity in geo302)
+                {
+                    if (entity is ArcGeometry arc)
+                    {
+                        if (arc.Data.Radius - (drillSizeBox / 2) <= 0.001)
+                        {
+                            entity.Selected = true;
+                            entity.Commit();
+                        }
+                        else
+                        {
+                            entity.Selected = false;
+                            entity.Commit();
+                        }
+                    }
+                }
+                var solid = SearchManager.GetSolidGeometry()[0];
+                var selectedGeo2 = ChainManager.ChainAllSelected();
+                foreach (var chain in selectedGeo2)
+                {
+                    if (thruBox == "No")
+                    {
+                        Mastercam.IO.Interop.SelectionManager.DoSolidExtrudeCut(chain, endToHole, solid.GetEntityID());
+                    }
+                    else
+                    {
+                        Mastercam.IO.Interop.SelectionManager.DoSolidExtrudeCut(chain, endToThru, solid.GetEntityID());
+                    }
+                }
+                SelectionManager.UnselectAllGeometry();
+                GraphicsManager.Repaint(true);
             }
             void nGearSide()
             {
@@ -340,6 +447,8 @@ namespace _PulseAirPrint
                 var leftestPoint = new Point3D(leftest, 0, 0);
                 var bearerToHole = Math.Round(VectorManager.Distance(leftestPoint, nGearToOutsidePoint) + .25, 4);
                 var endToHole = Math.Round(VectorManager.Distance(leftestPoint, nGearSideEnd) + .25, 4);
+                var endToThru = (totalLength - gearToOutsideDim) + .25;
+                var bearerToThru = (totalLength - (gearToOutsideDim + nGearToOutsideDim)) + .25;
                 if (thruBox == "No")
                 {
                     var bearerTextDataFormat = new LetterCreationData
@@ -352,12 +461,22 @@ namespace _PulseAirPrint
                         FontMode = FontModeType.MastercamBoxFont
                     };
                     Mastercam.GeometryUtility.LetterCreationManager.CreateLetters(bearerTextDataFormat);
+                    var endTextDataFormat = new LetterCreationData
+                    {
+                        LetterText = endToHole.ToString() + "From Outside Edge",
+                        StartingPoint = textPoint3,
+                        FontHeight = 0.16,
+                        FontSpacing = 0.08,
+                        FontAlignment = FontAlignmentType.Horizontal,
+                        FontMode = FontModeType.MastercamBoxFont
+                    };
+                    Mastercam.GeometryUtility.LetterCreationManager.CreateLetters(endTextDataFormat);
                 }
                 if (thruBox == "Yes")
                 {
                     var bearerTextDataFormat = new LetterCreationData
                     {
-                        LetterText = bearerToHole.ToString() + "From Outside Bearer/Spacer & THRU",
+                        LetterText = bearerToThru.ToString() + "From Outside Bearer/Spacer & THRU",
                         StartingPoint = textPoint2,
                         FontHeight = 0.16,
                         FontSpacing = 0.08,
@@ -365,25 +484,26 @@ namespace _PulseAirPrint
                         FontMode = FontModeType.MastercamBoxFont
                     };
                     Mastercam.GeometryUtility.LetterCreationManager.CreateLetters(bearerTextDataFormat);
+                    var endTextDataFormat = new LetterCreationData
+                    {
+                        LetterText = endToThru.ToString() + "From Outside Edge",
+                        StartingPoint = textPoint3,
+                        FontHeight = 0.16,
+                        FontSpacing = 0.08,
+                        FontAlignment = FontAlignmentType.Horizontal,
+                        FontMode = FontModeType.MastercamBoxFont
+                    };
+                    Mastercam.GeometryUtility.LetterCreationManager.CreateLetters(endTextDataFormat);
                 }
 
-                var endTextDataFormat = new LetterCreationData
-                {
-                    LetterText = endToHole.ToString() + "From Outside Edge",
-                    StartingPoint = textPoint3,
-                    FontHeight = 0.16,
-                    FontSpacing = 0.08,
-                    FontAlignment = FontAlignmentType.Horizontal,
-                    FontMode = FontModeType.MastercamBoxFont
-                };
-                Mastercam.GeometryUtility.LetterCreationManager.CreateLetters(endTextDataFormat);
+
 
                 /////////
                 var level300Geo = SearchManager.GetGeometry(300);
                 foreach (var entity in level300Geo)
                 {
-                var newGeo = entity.CopyAndTranslate(origin, nGearSideEnd, new MCView(), new MCView());
-                newGeo.Level = 302;
+                    var newGeo = entity.CopyAndTranslate(origin, nGearSideEnd, new MCView(), new MCView());
+                    newGeo.Level = 302;
                     newGeo.Commit();
                 }
                 var level302Geo = SearchManager.GetGeometry(302);
@@ -408,7 +528,7 @@ namespace _PulseAirPrint
                 LevelsManager.RefreshLevelsManager();
                 GraphicsManager.Repaint(true);
 
-                ////////// Rolls Geo
+                //////////
                 ViewManager.GraphicsView = SearchManager.GetSystemView(SystemPlaneType.Right);
                 ViewManager.WorkCoordinateSystem = SearchManager.GetSystemView(SystemPlaneType.Right);
                 ViewManager.TPlane = SearchManager.GetSystemView(SystemPlaneType.Right);
@@ -417,60 +537,52 @@ namespace _PulseAirPrint
                 GraphicsManager.Repaint(true);
                 GraphicsManager.FitScreen();
                 var geo302 = SearchManager.GetGeometry(302);
-                foreach (var entity in geo302)
-                {
-                    if (entity is ArcGeometry arc) {
-                        if ((rotaryPDBox / 2) - arc.Data.Radius <= 0.001) {
+                foreach (var entity in geo302){
+                    if (entity is ArcGeometry arc){
+                        if ((rotaryPDBox / 2) - arc.Data.Radius <= 0.001){
                             entity.Selected = true;
                             entity.Commit();
                         }
-                        else 
-                        {
-                            entity.Selected = false;
-                            entity.Commit();
-                        }
-                    }  
-                }
-                var selectedGeo1 = ChainManager.ChainAllSelected();
-                foreach (var chain in selectedGeo1)
-                {
-                    var passed = Mastercam.IO.Interop.SelectionManager.DoSolidExtrude(chain, "solid".ToString(), 0, totalLength);
-                    DialogManager.OK(passed.ToString(), "");
-                }
-                SelectionManager.UnselectAllGeometry();
-                foreach (var entity in geo302)
-                {
-                    if (entity is ArcGeometry arc)
-                    {
-                        DialogManager.OK((drillSizeBox / 2).ToString(), "Drill Size Rad");
-                        DialogManager.OK(arc.Data.Radius.ToString(), "arc rad");
-                        DialogManager.OK(((drillSizeBox / 2) - arc.Data.Radius).ToString(), "sum");
-
-                        if ( arc.Data.Radius - (drillSizeBox / 2) <= 0.001)
-                        {
-                            entity.Selected = true;
-                            entity.Commit();
-                        }
-                        else
-                        {
+                        else{
                             entity.Selected = false;
                             entity.Commit();
                         }
                     }
                 }
+                var selectedGeo1 = ChainManager.ChainAllSelected();
+                foreach (var chain in selectedGeo1){
+                    Mastercam.IO.Interop.SelectionManager.DoSolidExtrudeCreate(chain, totalLength);
+                }
+                SelectionManager.UnselectAllGeometry();
+                foreach (var entity in geo302){
+                    if (entity is ArcGeometry arc){
+                        if (arc.Data.Radius - (drillSizeBox / 2) <= 0.001){
+                            entity.Selected = true;
+                            entity.Commit();
+                        }
+                        else{
+                            entity.Selected = false;
+                            entity.Commit();
+                        }
+                    }
+                }
+                var solid = SearchManager.GetSolidGeometry()[0];
                 var selectedGeo2 = ChainManager.ChainAllSelected();
-                foreach (var chain in selectedGeo2)
-                {
-                    Mastercam.IO.Interop.SelectionManager.DoSolidExtrude(chain, "solid".ToString(),1, endToHole);
+                foreach (var chain in selectedGeo2){
+                    if (thruBox == "No"){
+                        Mastercam.IO.Interop.SelectionManager.DoSolidExtrudeCut(chain, endToHole, solid.GetEntityID());
+                    }
+                    else{
+                        Mastercam.IO.Interop.SelectionManager.DoSolidExtrudeCut(chain, endToThru, solid.GetEntityID());
+                    }
                 }
                 SelectionManager.UnselectAllGeometry();
                 GraphicsManager.Repaint(true);
-
             }
 
 
             StepOne();
-            if (paSide == "Gearide")
+            if (paSide == "GearSide")
             {
                 GearSide();
             }
@@ -478,6 +590,20 @@ namespace _PulseAirPrint
             {
                 nGearSide();
             }
+
+            LevelsManager.SetLevelVisible(300, true);
+            LevelsManager.SetLevelVisible(301, true);
+            LevelsManager.SetLevelVisible(302, true);
+            LevelsManager.SetLevelVisible(14, true);
+            LevelsManager.SetLevelVisible(11, true);
+
+            ViewManager.GraphicsView = SearchManager.GetSystemView(SystemPlaneType.Top);
+            ViewManager.WorkCoordinateSystem = SearchManager.GetSystemView(SystemPlaneType.Top);
+            ViewManager.TPlane = SearchManager.GetSystemView(SystemPlaneType.Top);
+            ViewManager.CPlane = SearchManager.GetSystemView(SystemPlaneType.Top);
+            ViewManager.RefreshPlanesManager();
+            GraphicsManager.Repaint(true);
+            GraphicsManager.FitScreen();
 
             return MCamReturn.NoErrors;
         }
