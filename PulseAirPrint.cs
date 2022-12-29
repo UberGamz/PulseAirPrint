@@ -46,9 +46,6 @@ namespace _PulseAirPrint
             var gearToInsideDim = double.Parse(form.gearToInsideDim.Text);
             var gearToOutsideDim = double.Parse(form.gearToOutsideDim.Text);
             var repeatHeight = rotaryPDBox * Math.PI;
-            var textPoint1 = new Point3D(28.75, (-rotaryPDBox), 0);
-            var textPoint2 = new Point3D(27.25, (-rotaryPDBox)-.2, 0);
-            var textPoint3 = new Point3D(28.25, (-rotaryPDBox)-.4, 0);
             var GearSideEndX = (insideDim / 2) + gearToInsideDim;
             var nGearSideEndX = (insideDim / 2) + nGearToInsideDim;
             var nGearToInsidePointX = nGearSideEndX - nGearToInsideDim;
@@ -58,6 +55,11 @@ namespace _PulseAirPrint
             var originPointList = new List<PointGeometry>();
             var origin = new Point3D(0, 0, 0);
             var totalLength = gearToInsideDim + insideDim + nGearToInsideDim;
+            var translatePoint = new Point3D((totalLength / 2) + (rotaryPDBox / 2) + 5, 0, 0);
+            var textPoint1 = new Point3D((translatePoint.x - 1.21), (-rotaryPDBox), 0);
+            var textPoint2 = new Point3D((translatePoint.x - 2.75), (-rotaryPDBox) - .2, 0);
+            var textPoint3 = new Point3D((translatePoint.x - 1.95), (-rotaryPDBox) - .4, 0);
+
 
 
 
@@ -182,7 +184,6 @@ namespace _PulseAirPrint
                     geo301.Retrieve();
                     geo301.Rotate(origin, 90, SearchManager.GetSystemView(SystemPlaneType.Top));
                     geo301.Retrieve();
-                    var translatePoint = new Point3D(30, 0, 0);
                     geo301.Translate(origin, translatePoint, SearchManager.GetSystemView(SystemPlaneType.Top), SearchManager.GetSystemView(SystemPlaneType.Top));
                     geo301.Retrieve();
                     geo301.Level = 301;
